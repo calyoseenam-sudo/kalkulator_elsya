@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Modern</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1b1026;
+            font-family: Arial, sans-serif;
+        }
+
+        .calculator {
+            width: 340px;
+            padding: 22px;
+            background: #261836;
+            border-radius: 25px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .display {
+            min-height: 110px;
+            padding: 15px 5px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        .previous {
+            color: #9a86b3;
+            font-size: 15px;
+            min-height: 25px;
+        }
+
+        .current {
+            color: #f4ecff;
+            font-size: 38px;
+            overflow-wrap: anywhere;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            height: 62px;
+            border: none;
+            border-radius: 16px;
+            background: #3a2a4d;
+            color: #f4ecff;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #4a3862;
+        }
+
+        button:active {
+            transform: scale(0.94);
+        }
+
+        .operator {
+            background: #4d2a5c;
+            color: #ff9de2;
+        }
+
+        .operator:hover {
+            background: #613672;
+        }
+
+        .clear {
+            background: #4a2530;
+            color: #ffb454;
+        }
+
+        .clear:hover {
+            background: #63303f;
+        }
+
+        .equal {
+            grid-column: span 4;
+            background: #ff9f43;
+            color: #2a1200;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .equal:hover {
+            background: #ffb25f;
+        }
+
+        .zero {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 380px) {
+            .calculator {
+                width: 92%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="calculator">
+
+        <div class="display">
+            <div class="previous" id="previous"></div>
+            <div class="current" id="current">0</div>
+        </div>
+
+        <div class="buttons">
+            <button class="clear" onclick="clearDisplay()">C</button>
+            <button class="clear" onclick="deleteNumber()">DEL</button>
+            <button class="operator" onclick="addValue('(')">(</button>
+            <button class="operator" onclick="addValue(')')">)</button>
+
+            <button class="operator" onclick="addValue('%')">%</button>
+            <button class="operator" onclick="squareRoot()">√</button>
+            <button class="operator" onclick="square()">x²</button>
+            <button class="operator" onclick="addValue('^')">xʸ</button>
+
+            <button onclick="addValue('7')">7</button>
+            <button onclick="addValue('8')">8</button>
+            <button onclick="addValue('9')">9</button>
+            <button class="operator" onclick="addValue('/')">÷</button>
+
+            <button onclick="addValue('4')">4</button>
+            <button onclick="addValue('5')">5</button>
+            <button onclick="addValue('6')">6</button>
+            <button class="operator" onclick="addValue('*')">×</button>
+
+            <button onclick="addValue('1')">1</button>
+            <button onclick="addValue('2')">2</button>
+            <button onclick="addValue('3')">3</button>
+            <button class="operator" onclick="addValue('-')">−</button>
+
+            <button class="zero" onclick="addValue('0')">0</button>
+            <button onclick="addValue('.')">.</button>
+            <button class="operator" onclick="addValue('+')">+</button>
+
+            <button class="equal" onclick="calculate()">=</button>
+        </div>
+
+    </div>
+
+    <script>
+        const current = document.getElementById("current");
+        const previous = document.getElementById("previous");
+
+        let expression = "";
+        let finished = false;
+
+        function refresh() {
+            current.textContent = expression || "0";
+        }
+
+        function addValue(value) {
+            const operators = ["+", "-", "*", "/", "^", "%"];
+
+            if (finished) {
+                if (!operators.includes(value) && value !== ")") {
+                    expression = "";
+                }
+                finished = false;
+            }
+
+            expression += value;
+            refresh();
+        }
+
+        function clearDisplay() {
+            expression = "";
+            previous.textContent = "";
+            finished = false;
+            refresh();
+        }
+
+        function deleteNumber() {
+            expression = expression.slice(0, -1);
+            finished = false;
+            refresh();
+        }
+
+        function square() {
+            if (expression) {
+                expression = "(" + expression + ")^2";
+                refresh();
+            }
+        }
+
+        function squareRoot() {
+            if (expression) {
+                expression = "sqrt(" + expression + ")";
+            } else {
+                expression = "sqrt(";
+            }
+
+            refresh();
+        }
+
+        function calculate() {
+            if (!expression) return;
+
+            try {
+                let result = expression
+                    .replace(/sqrt/g, "Math.sqrt")
+                    .replace(/\^/g, "**");
+
+                result = result.replace(
+                    /(\d|\))(?=\()/g, "$1*"
+                );
+
+                result = result.replace(
+                    /\)(?=\d)/g, ")*"
+                );
+
+                result = result.replace(
+                    /(\d+(\.\d+)?)%/g, "($1/100)"
+                );
+
+                result = result.replace(
+                    /(\))%/g, "($1/100)"
+                );
+
+                if (!/^[0-9+\-*/().\s]*$/.test(
+                    result.replace(/Math\.sqrt/g, "")
+                )) {
+                    throw new Error("Ekspresi tidak valid");
+                }
+
+                if (result.includes("**")) {
+                    const parts = result.split("**");
+                    if (parts.some(p => Math.abs(Number(p)) > 1000)) {
+                        throw new Error("Pangkat terlalu besar");
+                    }
+                }
+
+                if (/\/\s*0(?![\d.])/.test(result)) {
+                    throw new Error("Pembagian dengan nol");
+                }
+
+                const answer = Function(
+                    '"use strict"; return (' + result + ')'
+                )();
+
+                if (!Number.isFinite(answer)) {
+                    throw new Error("Hasil tidak valid");
+                }
+
+                previous.textContent = expression + " =";
+                expression = String(
+                    Number(answer.toPrecision(10))
+                );
+
+                finished = true;
+                refresh();
+
+            } catch (error) {
+                current.textContent = "Error";
+                expression = "";
+                finished = true;
+            }
+        }
+
+        document.addEventListener("keydown", function(event) {
+            const key = event.key;
+
+            if ("0123456789.+-*/()%".includes(key)) {
+                addValue(key);
+            } else if (key === "Enter") {
+                calculate();
+            } else if (key === "Backspace") {
+                deleteNumber();
+            } else if (key === "Escape") {
+                clearDisplay();
+            } else if (key === "^") {
+                addValue("^");
+            }
+        });
+    </script>
+
+</body>
+</html>
